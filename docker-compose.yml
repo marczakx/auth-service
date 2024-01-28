@@ -1,0 +1,37 @@
+version: '2.1'
+
+services:
+
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: dbpas-change-it
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+  auth-service:
+    build: .
+    ports:
+      - "8095:9090"
+    environment:
+      SPRING_DATASOURCE_PASSWORD: dbpas-change-it
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      JWT_SECRET: ++++++++++++++++++++++CHANGE+IT+++++++++++++++++++++++++++++++++
+    depends_on:
+      db:
+        condition: service_healthy
+
+  liquibase:
+    image: liquibase/liquibase
+    volumes:
+      - ./liquibase/:/liquibase/changelog/
+    command: update --url=jdbc:postgresql://db:5432/postgres --changelog-file=changelog.xml  --username=postgres --password=dbpas-change-it
+    depends_on:
+      db:
+        condition: service_healthy
