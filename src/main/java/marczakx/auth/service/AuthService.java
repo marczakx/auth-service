@@ -18,7 +18,7 @@ import marczakx.auth.model.LoginResponse;
 @Service
 public class AuthService {
 
-  @Value("${jwt.secret}")
+  @Value("#{environment.JWT_SECRET}")
   private String jwtSecret;
 
   @Value("${jwt.expiration.ms}")
